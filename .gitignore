@@ -1,0 +1,10 @@
+# dados da CAPES (grandes e com informações pessoais)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
