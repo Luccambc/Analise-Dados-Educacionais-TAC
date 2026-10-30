@@ -1,0 +1,6 @@
+nivel,grupo,matriculas,tituladas_ate_corte,percentual,ic_inf,ic_sup
+DOUTORADO,ref,870,268,30.8,27.7,33.8
+DOUTORADO,reta_final,1001,233,23.3,20.8,25.9
+MESTRADO,ref,3226,1563,48.5,46.7,50.2
+MESTRADO,reta_final,3040,1083,35.6,33.8,37.3
+MESTRADO,curso_pandemia,3021,839,27.8,26.2,29.4

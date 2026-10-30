@@ -1,0 +1,6 @@
+NIVEL,GRUPO,1 no prazo,2 +1 a +6 meses,3 +7 a +12 meses,4 +13 a +36 meses,5 sem titular no horizonte,6 desligou ou abandonou,7 mudança de nível,8 sem registro final
+DOUTORADO,ref,12.0,18.9,22.0,23.0,8.4,10.9,0.0,4.9
+DOUTORADO,reta_final,10.0,13.3,12.6,31.5,15.7,10.9,0.0,6.1
+MESTRADO,ref,17.2,31.3,14.7,0.0,17.8,16.3,0.2,2.6
+MESTRADO,reta_final,12.1,23.5,14.3,0.0,31.2,13.6,0.2,5.1
+MESTRADO,curso_pandemia,8.6,19.1,13.5,0.0,34.2,19.2,0.5,4.9

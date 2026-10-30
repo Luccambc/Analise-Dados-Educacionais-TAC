@@ -1,0 +1,42 @@
+VERIFICAÇÕES DE CONSISTÊNCIA
+Registros: 74794 | Programas: 74
+
+1. Registros por ano-base
+AN_BASE
+2017     8756
+2018     8930
+2019     9148
+2020     9081
+2021     9534
+2022     9548
+2023     9625
+2024    10172
+
+2. QT_MES_TITULACAO versus diferença entre as datas (titulados)
+Registros de titulados: 12212
+Diferença de até 1 mês: 100.0%
+Diferença máxima: 1 meses
+
+3. Discente, programa e nível com mais de uma data de matrícula
+Total: 854 de 25980
+Até 180 dias (correção): 19
+Mais de 180 dias (reingresso): 835
+
+4. Nome da área de avaliação por ano-base
+AN_BASE
+2017    [CIÊNCIA DA COMPUTAÇÃO]
+2018    [CIÊNCIA DA COMPUTAÇÃO]
+2019    [CIÊNCIA DA COMPUTAÇÃO]
+2020    [CIÊNCIA DA COMPUTAÇÃO]
+2021    [CIÊNCIA DA COMPUTAÇÃO]
+2022    [CIÊNCIA DA COMPUTAÇÃO]
+2023    [CIÊNCIA DA COMPUTAÇÃO]
+2024               [COMPUTAÇÃO]
+
+5. Situações dos discentes
+NM_SITUACAO_DISCENTE
+MATRICULADO                    56718
+TITULADO                       12212
+DESLIGADO                       4516
+ABANDONOU                       1302
+MUDANÇA DE NÍVEL SEM DEFESA       46

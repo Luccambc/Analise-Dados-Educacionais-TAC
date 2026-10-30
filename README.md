@@ -19,3 +19,18 @@ python src/04_qp1.py
 python src/05_qp2.py
 python src/06_qp3.py
 ```
+
+Ou tudo de uma vez: `python src/rodar_tudo.py`
+
+## O que cada script gera
+| Script | Saídas |
+| --- | --- |
+| 01_carregar | `data/processed/base.parquet` |
+| 02_verificar | `results/verificacao.txt` |
+| 03_preparar | `data/processed/matriculas.parquet`, `results/tabelas/etapas_preparacao.csv`, `results/tabelas/tabela1_matriculas.csv` |
+| 04_qp1 | tabelas `qp1_*.csv`, figuras `qp1_curva_acumulada.png` e `qp1_forest_instituicoes.png` |
+| 05_qp2 | tabelas `qp2_*.csv` |
+| 06_qp3 | tabelas `qp3_*.csv` |
+
+Todas as decisões metodológicas (grupos, prazos, cortes, mínimos, semente) estão em `config.py`.
+

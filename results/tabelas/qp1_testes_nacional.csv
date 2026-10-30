@@ -1,0 +1,4 @@
+nivel,comparacao,alfa_bonferroni,qui2,gl,p_qui2,v_cramer,signif_qui2,mediana_meses_ref,mediana_meses_exp,p_mann_whitney,delta_cliff,signif_mw
+MESTRADO,reta_final vs ref,0.025,210.1,6,1.3134310199626399e-42,0.183,True,28.0,28.0,0.035124423871077434,0.041,False
+MESTRADO,curso_pandemia vs ref,0.025,377.5,6,1.8959748417226196e-78,0.246,True,28.0,29.0,1.7752465368848057e-09,0.125,True
+DOUTORADO,reta_final vs ref,0.05,68.2,6,9.388095354991067e-13,0.191,True,57.0,59.0,4.47784541608808e-06,0.145,True
