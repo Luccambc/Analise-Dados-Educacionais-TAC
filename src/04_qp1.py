@@ -197,6 +197,13 @@ def main():
     inst, het = por_instituicao(m, rng)
     regioes = por_regiao(m)
 
+    indicador = utils.ordenar(indicador)
+    desfechos = utils.ordenar(desfechos, "NIVEL", "GRUPO")
+    regioes = utils.ordenar(regioes, "NIVEL", "GRUPO", apos_nivel=("NM_REGIAO",))
+    het = het.sort_values("grupo", key=lambda s: s.str.split().str[0].map(utils.ORDEM_GRUPOS.index))
+    inst = inst.sort_values(["instituicao", "grupo"],
+                            key=lambda s: s.map(utils.ORDEM_GRUPOS.index) if s.name == "grupo" else s)
+
     indicador.to_csv(utils.TABELAS / "qp1_indicador_nacional.csv", index=False)
     desfechos.to_csv(utils.TABELAS / "qp1_desfechos_nacional.csv")
     testes.to_csv(utils.TABELAS / "qp1_testes_nacional.csv", index=False)
@@ -211,7 +218,7 @@ def main():
     pd.set_option("display.width", 200)
     print(f"Indicador: % tituladas até +{config.CORTE_INDICADOR} meses (IC 95%)")
     print(indicador.to_string(index=False))
-    print("\ntestes nacionais")
+    print("\nTestes nacionais")
     print(testes.to_string(index=False))
     print("\nRobustez")
     print(rob.to_string(index=False))

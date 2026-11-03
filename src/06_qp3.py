@@ -79,10 +79,15 @@ def main():
     variacao = pd.DataFrame(linhas)
 
     # 3. Distribuição dos desfechos na UnB
+    # Detalha cada aluno em várias categorias; por isso exige o mesmo mínimo das
+    # análises por instituição, e não só MIN_CELULA (com 10 alunos, 10% = 1 pessoa).
     u = m[m["UNB"]]
     desfechos = pd.crosstab([u["NIVEL"], u["GRUPO"]], u["DESFECHO"], normalize="index").mul(100).round(1)
     tamanhos = u.groupby(["NIVEL", "GRUPO"], observed=True).size()
-    desfechos = desfechos[tamanhos.reindex(desfechos.index) >= config.MIN_CELULA]
+    desfechos = desfechos[tamanhos.reindex(desfechos.index) >= config.MIN_POR_INSTITUICAO]
+
+    comparacao = utils.ordenar(comparacao)
+    desfechos = utils.ordenar(desfechos, "NIVEL", "GRUPO")
 
     comparacao.to_csv(utils.TABELAS / "qp3_unb_vs_demais.csv", index=False)
     variacao.to_csv(utils.TABELAS / "qp3_variacao.csv", index=False)

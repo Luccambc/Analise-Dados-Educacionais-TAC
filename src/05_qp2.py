@@ -55,6 +55,10 @@ def main():
 
     resultados = pd.DataFrame(resultados)
     por_nota = pd.concat(por_nota, ignore_index=True)
+    resultados = utils.ordenar(resultados)
+    por_nota = utils.ordenar(por_nota, depois=("nota",))
+    programas = utils.ordenar(programas, "NIVEL", "GRUPO", depois=("CD_PROGRAMA_IES",))
+
     resultados.to_csv(utils.TABELAS / "qp2_spearman.csv", index=False)
     por_nota.to_csv(utils.TABELAS / "qp2_indicador_por_nota.csv", index=False)
     programas.to_csv(utils.TABELAS / "qp2_programas.csv", index=False)

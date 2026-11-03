@@ -99,6 +99,27 @@ def variancia_diferenca(x_exp, n_exp, x_ref, n_ref):
     return p1 * (1 - p1) / n_exp + p2 * (1 - p2) / n_ref
 
 
+ORDEM_NIVEIS = ["MESTRADO", "DOUTORADO"]
+
+
+def ordenar(df, nivel="nivel", grupo="grupo", apos_nivel=(), depois=()):
+    """Ordena por nível (mestrado primeiro) e grupo (cronológico).
+
+    Aceita os nomes das colunas ou dos níveis do índice.
+    """
+    no_indice = nivel in (df.index.names or [])
+    if no_indice:
+        nomes_indice = list(df.index.names)
+        df = df.reset_index()
+    chaves = {
+        nivel: lambda s: s.map({n: i for i, n in enumerate(ORDEM_NIVEIS)}),
+        grupo: lambda s: s.astype(str).map({g: i for i, g in enumerate(ORDEM_GRUPOS)}),
+    }
+    colunas = [nivel, *apos_nivel, grupo, *depois]
+    df = df.sort_values(colunas, key=lambda s: chaves.get(s.name, lambda x: x)(s))
+    return df.set_index(nomes_indice) if no_indice else df.reset_index(drop=True)
+
+
 def suprimir_pequenos(df, coluna_n="matriculas"):
     """Retira linhas com menos de MIN_CELULA matrículas (cuidado ético)."""
     return df[df[coluna_n] >= config.MIN_CELULA]
