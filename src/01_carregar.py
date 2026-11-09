@@ -64,6 +64,9 @@ def main():
     # A base grafa a mesma situação de dois jeitos
     base["NM_SITUACAO_DISCENTE"] = base["NM_SITUACAO_DISCENTE"].str.replace("MUDANCA", "MUDANÇA")
 
+    # Padroniza as siglas que mudaram de grafia ao longo dos anos (ver config.py)
+    base["SG_ENTIDADE_ENSINO"] = base["SG_ENTIDADE_ENSINO"].replace(config.SIGLAS_EQUIVALENTES)
+
     saida = RAIZ / "data" / "processed" / "base.parquet"
     base.to_parquet(saida, index=False)
 

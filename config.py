@@ -16,6 +16,22 @@ GRUPOS = {
     },
 }
 
+# Em 2024 (e em 2023, no caso da UFS) a CAPES mudou a grafia da sigla de algumas
+# instituições. Sem padronizar, o mesmo programa apareceria como duas instituições.
+# Mantém-se a grafia usada de 2017 a 2023.
+SIGLAS_EQUIVALENTES = {
+    "CEFET-RJ": "CEFET/RJ",
+    "UFPI": "FUFPI",
+    "UFS": "FUFSE",
+    "PUC MINAS": "PUC/MG",
+    "PUCPR": "PUC/PR",
+    "PUCRS": "PUC/RS",
+    "UFPB-JOÃO PESSOA": "UFPB-JP",
+    "UNESP-SJ RIO PRETO": "UNESP-SJRP",
+    "USP-RIBEIRÃO PRETO": "USP/RP",
+    "USP-SÃO CARLOS": "USP/SC",
+}
+
 HORIZONTE_MESES = {"MESTRADO": 12, "DOUTORADO": 36}
 CORTE_ATIVO_MESES = 12        # ativos 12 meses antes do prazo
 LIMITE_CORRECAO_DIAS = 180    # acima disso, reingresso
