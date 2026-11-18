@@ -94,7 +94,7 @@ def main():
     desfechos.to_csv(utils.TABELAS / "qp3_desfechos_unb.csv")
 
     pd.set_option("display.width", 200)
-    print("UnB versus demais: % tituladas até +6 meses")
+    print(f"UnB versus demais: % tituladas até o prazo + prorrogação {config.PRORROGACAO_MESES}")
     print(comparacao.to_string(index=False))
     print("\nVariação em relação à referência")
     print(variacao.to_string(index=False))

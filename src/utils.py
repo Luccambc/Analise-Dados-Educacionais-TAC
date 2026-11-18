@@ -1,4 +1,4 @@
-"""Funções comuns (bootstrap, delta de Cliff, V de Cramér, Q de Cochran e I²)."""
+"""Funções comuns (faixas de desfecho, bootstrap, delta de Cliff, V de Cramér, Q de Cochran e I²)."""
 import sys
 from pathlib import Path
 
@@ -14,11 +14,65 @@ TABELAS = RAIZ / "results" / "tabelas"
 FIGURAS = RAIZ / "results" / "figuras"
 PROCESSADOS = RAIZ / "data" / "processed"
 
-ORDEM_GRUPOS = ["ref", "reta_final", "curso_pandemia"]
+ORDEM_GRUPOS = ["ref", "reta_final", "meio_curso", "curso_pandemia"]
 ROTULOS_GRUPOS = {
     "MESTRADO": {"ref": "Ingresso 2016-2017", "reta_final": "Ingresso 2018-2019", "curso_pandemia": "Ingresso 2020-2021"},
-    "DOUTORADO": {"ref": "Ingresso 2014-2015", "reta_final": "Ingresso 2016-2017"},
+    "DOUTORADO": {"ref": "Ingresso 2014-2015", "reta_final": "Ingresso 2016-2017", "meio_curso": "Ingresso 2018-2019"},
 }
+
+# Faixas de desfecho, alinhadas ao regulamento (prazo e prorrogação)
+FAIXAS = [
+    "1 até o prazo",
+    "2 na prorrogação",
+    "3 depois da prorrogação",
+    "4 ainda matriculado ao fim do acompanhamento",
+    "5 desligou ou abandonou",
+    "6 mudança de nível",
+    "7 sem registro final",
+]
+FAIXAS_TITULADO = FAIXAS[:3]
+ULTIMO_ANO_BASE = 2024
+
+
+def horizonte_meses(nivel, grupo):
+    """Meses de acompanhamento após o prazo para um grupo."""
+    return config.HORIZONTE_EXCECOES.get((nivel, grupo), config.HORIZONTE_MESES[nivel])
+
+
+def classificar(m, horizonte):
+    """Faixa de desfecho de cada matrícula, dado o horizonte em meses após o prazo.
+
+    `horizonte` pode ser um número (mesmo para todos) ou uma Series alinhada a `m`.
+    Retorna (faixa, titulou_ate_prorrogacao).
+    """
+    sit = m["NM_SITUACAO_DISCENTE"]
+    h = pd.Series(np.broadcast_to(np.asarray(horizonte), len(m)), index=m.index)
+    fim = pd.Series(pd.NaT, index=m.index, dtype="datetime64[ns]")
+    for meses in h.unique():
+        sel = h == meses
+        fim[sel] = m.loc[sel, "PRAZO"] + pd.DateOffset(months=int(meses))
+    no_horizonte = m["DT_SITUACAO"] <= fim
+    extensao = m["QT_MES_TITULACAO"] - m["PRAZO_MESES"]
+    prorrogacao = m["NIVEL"].map(config.PRORROGACAO_MESES)
+    # Titulação no horizonte medida pelo tempo de titulação da CAPES, a mesma medida
+    # das faixas. Pelas datas, a diferença é de no máximo 1 mês, o que cortaria de
+    # forma desigual o grupo cujo horizonte termina no último mês da base.
+    titulou = (sit == "TITULADO") & (extensao <= h)
+    sumiu = (sit == "MATRICULADO") & (m["AN_BASE"] < np.minimum(ULTIMO_ANO_BASE, fim.dt.year))
+
+    faixa = pd.Series(np.select(
+        [
+            titulou & (extensao <= 0),
+            titulou & (extensao <= prorrogacao),
+            titulou,
+            sit.isin(["DESLIGADO", "ABANDONOU"]) & no_horizonte,
+            (sit == "MUDANÇA DE NÍVEL SEM DEFESA") & no_horizonte,
+            sumiu,
+        ],
+        [FAIXAS[0], FAIXAS[1], FAIXAS[2], FAIXAS[4], FAIXAS[5], FAIXAS[6]],
+        default=FAIXAS[3],  # continuava matriculado (ou só saiu depois do horizonte)
+    ), index=m.index)
+    return faixa, titulou & (extensao <= prorrogacao)
 
 
 def carregar_matriculas():

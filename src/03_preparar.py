@@ -7,12 +7,13 @@ Saídas:  data/processed/matriculas.parquet
 import sys
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
+sys.path.insert(0, str(RAIZ / "src"))
 import config  # noqa: E402
+import utils  # noqa: E402
 
 CHAVE = ["ID_PESSOA", "CD_PROGRAMA_IES", "DS_GRAU_ACADEMICO_DISCENTE"]
 EVENTOS = ["TITULADO", "DESLIGADO", "ABANDONOU", "MUDANÇA DE NÍVEL SEM DEFESA"]
@@ -52,41 +53,19 @@ def atribuir_grupos(m):
         e_nivel = m["NIVEL"] == nivel
         m.loc[e_nivel, "PRAZO"] = m.loc[e_nivel, "DT_MATRICULA"] + pd.DateOffset(months=meses)
         m.loc[e_nivel, "CORTE_ATIVO"] = m.loc[e_nivel, "PRAZO"] - pd.DateOffset(months=config.CORTE_ATIVO_MESES)
-        m.loc[e_nivel, "HORIZONTE"] = m.loc[e_nivel, "PRAZO"] + pd.DateOffset(months=config.HORIZONTE_MESES[nivel])
+    m["HORIZONTE_MESES"] = [utils.horizonte_meses(n, g) for n, g in zip(m["NIVEL"], m["GRUPO"])]
     return m
 
 
 def classificar_desfechos(m):
-    """Desfecho de cada matrícula dentro do horizonte de acompanhamento."""
-    sit = m["NM_SITUACAO_DISCENTE"]
-    no_horizonte = m["DT_SITUACAO"] <= m["HORIZONTE"]
-    titulou = (sit == "TITULADO") & no_horizonte
-    extensao = m["QT_MES_TITULACAO"] - m["PRAZO_MESES"]
-    sumiu = (sit == "MATRICULADO") & (m["AN_BASE"] < np.minimum(2024, m["HORIZONTE"].dt.year))
+    """Faixa de desfecho de cada matrícula, no horizonte de acompanhamento do seu grupo.
 
-    m["EXTENSAO_MESES"] = extensao.where(sit == "TITULADO")
-    m["DESFECHO"] = np.select(
-        [
-            titulou & (extensao <= 0),
-            titulou & (extensao <= 6),
-            titulou & (extensao <= 12),
-            titulou,
-            sit.isin(["DESLIGADO", "ABANDONOU"]) & no_horizonte,
-            sit == "MUDANÇA DE NÍVEL SEM DEFESA",
-            sumiu,
-        ],
-        [
-            "1 no prazo",
-            "2 +1 a +6 meses",
-            "3 +7 a +12 meses",
-            "4 +13 a +36 meses",
-            "6 desligou ou abandonou",
-            "7 mudança de nível",
-            "8 sem registro final",
-        ],
-        default="5 sem titular no horizonte",
-    )
-    m["TITULOU_ATE_CORTE"] = titulou & (extensao <= config.CORTE_INDICADOR)
+    1 até o prazo | 2 na prorrogação | 3 depois da prorrogação (titulados no horizonte)
+    4 ainda matriculado ao fim do acompanhamento | 5 desligou ou abandonou
+    6 mudança de nível | 7 sem registro final
+    """
+    m["EXTENSAO_MESES"] = (m["QT_MES_TITULACAO"] - m["PRAZO_MESES"]).where(m["NM_SITUACAO_DISCENTE"] == "TITULADO")
+    m["DESFECHO"], m["TITULOU_ATE_CORTE"] = utils.classificar(m, m["HORIZONTE_MESES"])
     return m
 
 
@@ -102,6 +81,10 @@ def main():
 
     # Etapa 5: mantém só quem estava ativo 12 meses antes do prazo
     saiu_antes = m["NM_SITUACAO_DISCENTE"].isin(EVENTOS) & (m["DT_SITUACAO"] < m["CORTE_ATIVO"])
+    titulou_cedo = saiu_antes & (m["NM_SITUACAO_DISCENTE"] == "TITULADO")
+    excluidas = pd.concat(
+        [saiu_antes.groupby([m["NIVEL"], m["GRUPO"]]).sum().rename("saiu_antes_do_corte"),
+         titulou_cedo.groupby([m["NIVEL"], m["GRUPO"]]).sum().rename("titulou_antes_do_corte")], axis=1)
     m = m[~saiu_antes].copy()
     etapas.append(("Matrículas ativas 12 meses antes do prazo (analisadas)", len(m)))
     m = classificar_desfechos(m)
@@ -115,6 +98,7 @@ def main():
     tabela1 = pd.concat(
         [
             na_janela,
+            excluidas,
             m.groupby(["NIVEL", "GRUPO"]).size().rename("analisadas"),
             m.groupby(["NIVEL", "GRUPO"])["CD_PROGRAMA_IES"].nunique().rename("programas"),
             m[m["SG_ENTIDADE_ENSINO"] == "UNB"].groupby(["NIVEL", "GRUPO"]).size().rename("unb"),
