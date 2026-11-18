@@ -20,6 +20,14 @@ ROTULOS_GRUPOS = {
     "DOUTORADO": {"ref": "Ingresso 2014-2015", "reta_final": "Ingresso 2016-2017", "meio_curso": "Ingresso 2018-2019"},
 }
 
+# O que cada grupo representa, para legendas
+DESCRICAO_GRUPOS = {
+    "ref": "referência: prazo antes da pandemia",
+    "reta_final": "pandemia na reta final do curso",
+    "meio_curso": "pandemia no meio do curso",
+    "curso_pandemia": "curso todo na pandemia",
+}
+
 # Faixas de desfecho, alinhadas ao regulamento (prazo e prorrogação)
 FAIXAS = [
     "1 até o prazo",

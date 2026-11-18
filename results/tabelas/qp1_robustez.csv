@@ -1,10 +1,13 @@
-corte_meses,nivel,comparacao,pct_ref,pct_exp,diferenca_pp,ic_inf,ic_sup,p,signif
-0,MESTRADO,reta_final vs ref,17.2,12.1,-5.0,-6.8,-3.3,2.3428259368889267e-08,True
-0,MESTRADO,curso_pandemia vs ref,17.2,8.6,-8.5,-10.2,-6.9,2.0719771361200326e-23,True
-0,DOUTORADO,reta_final vs ref,12.0,10.0,-2.0,-4.7,1.0,0.19874684505268422,False
-6,MESTRADO,reta_final vs ref,48.5,35.6,-12.8,-15.3,-10.5,1.2220473695536917e-24,True
-6,MESTRADO,curso_pandemia vs ref,48.5,27.8,-20.7,-23.0,-18.3,4.5856458364359447e-63,True
-6,DOUTORADO,reta_final vs ref,30.8,23.3,-7.5,-11.6,-3.4,0.0002998024701016013,True
-12,MESTRADO,reta_final vs ref,63.1,49.9,-13.2,-15.7,-10.9,6.841204156268871e-26,True
-12,MESTRADO,curso_pandemia vs ref,63.1,41.2,-21.9,-24.4,-19.6,5.031046340294871e-67,True
-12,DOUTORADO,reta_final vs ref,52.8,35.9,-16.9,-21.7,-12.3,2.8509803383879354e-13,True
+corte_meses,principal,nivel,comparacao,pct_ref,pct_exp,diferenca_pp,ic_inf,ic_sup,p,signif
+0,False,MESTRADO,reta_final vs ref,17.2,12.1,-5.0,-6.8,-3.3,2.3428259368889267e-08,True
+0,False,MESTRADO,curso_pandemia vs ref,17.2,8.6,-8.5,-10.1,-6.9,2.0719771361200326e-23,True
+0,False,DOUTORADO,reta_final vs ref,12.0,10.0,-2.0,-4.8,0.7,0.19874684505268422,False
+0,False,DOUTORADO,meio_curso vs ref,12.0,11.1,-0.9,-3.8,2.0,0.6039213571514345,False
+6,True,MESTRADO,reta_final vs ref,48.5,35.6,-12.8,-15.2,-10.5,1.2220473695536917e-24,True
+6,True,MESTRADO,curso_pandemia vs ref,48.5,27.8,-20.7,-23.0,-18.3,4.5856458364359447e-63,True
+6,False,DOUTORADO,reta_final vs ref,30.8,23.3,-7.5,-11.6,-3.6,0.0002998024701016013,True
+6,False,DOUTORADO,meio_curso vs ref,30.8,21.2,-9.6,-13.5,-5.5,2.2079379035805323e-06,True
+12,False,MESTRADO,reta_final vs ref,64.0,52.7,-11.3,-13.6,-8.7,1.6593823257678785e-19,True
+12,False,MESTRADO,curso_pandemia vs ref,64.0,43.6,-20.4,-22.6,-18.0,2.2686570360046545e-58,True
+12,True,DOUTORADO,reta_final vs ref,52.8,35.9,-16.9,-21.1,-12.8,2.8509803383879354e-13,True
+12,True,DOUTORADO,meio_curso vs ref,52.8,35.0,-17.8,-22.4,-13.6,7.602902757458312e-15,True

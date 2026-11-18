@@ -1,6 +1,7 @@
-NIVEL,GRUPO,1 no prazo,2 +1 a +6 meses,3 +7 a +12 meses,4 +13 a +36 meses,5 sem titular no horizonte,6 desligou ou abandonou,7 mudança de nível,8 sem registro final
-MESTRADO,ref,17.2,31.3,14.7,0.0,17.8,16.3,0.2,2.6
-MESTRADO,reta_final,12.1,23.5,14.3,0.0,31.2,13.6,0.2,5.1
-MESTRADO,curso_pandemia,8.6,19.1,13.5,0.0,34.2,19.2,0.5,4.9
-DOUTORADO,ref,12.0,18.9,22.0,23.0,8.4,10.9,0.0,4.9
-DOUTORADO,reta_final,10.0,13.3,12.6,31.5,15.7,10.9,0.0,6.1
+NIVEL,GRUPO,1 até o prazo,2 na prorrogação,3 depois da prorrogação,4 ainda matriculado ao fim do acompanhamento,5 desligou ou abandonou,6 mudança de nível,7 sem registro final
+MESTRADO,ref,17.2,31.3,15.5,16.9,16.3,0.2,2.6
+MESTRADO,reta_final,12.1,23.5,17.1,28.4,13.6,0.2,5.1
+MESTRADO,curso_pandemia,8.6,19.1,15.9,31.8,19.2,0.5,4.9
+DOUTORADO,ref,12.0,40.8,23.1,8.3,10.9,0.0,4.9
+DOUTORADO,reta_final,10.0,25.9,31.9,15.3,10.9,0.0,6.1
+DOUTORADO,meio_curso,11.1,23.9,0.0,52.3,7.2,0.0,5.5

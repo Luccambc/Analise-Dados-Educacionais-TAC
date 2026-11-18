@@ -1,4 +1,5 @@
 nivel,comparacao,variacao_unb_pp,variacao_demais_pp,diferenca_das_variacoes_pp,ic_inf,ic_sup,observacao
-MESTRADO,reta_final vs ref,-27.8,-12.5,-15.3,-36.6,7.5,
-MESTRADO,curso_pandemia vs ref,-47.4,-20.2,-27.2,-45.1,-9.2,
-DOUTORADO,reta_final vs ref,-10.0,-7.4,-2.6,,,descritivo
+MESTRADO,reta_final vs ref,-27.8,-12.5,-15.3,-37.4,6.5,
+MESTRADO,curso_pandemia vs ref,-47.4,-20.2,-27.2,-44.4,-9.0,
+DOUTORADO,reta_final vs ref,-22.9,-16.8,-6.1,,,descritivo
+DOUTORADO,meio_curso vs ref,6.7,-18.1,24.7,,,descritivo

@@ -1,0 +1,7 @@
+nivel,grupo,matriculas,horizonte_meses,meses_ate_25pct,meses_ate_50pct,media_entre_titulados
+MESTRADO,ref,3226,12,2.0,7.0,3.7
+MESTRADO,reta_final,3040,12,4.0,12.0,4.3
+MESTRADO,curso_pandemia,3021,12,6.0,,4.9
+DOUTORADO,ref,870,36,5.0,12.0,9.5
+DOUTORADO,reta_final,1001,36,7.0,20.0,12.4
+DOUTORADO,meio_curso,1046,12,8.0,,3.9

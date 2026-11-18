@@ -32,7 +32,7 @@ from utils import config  # noqa: E402
 
 CORES = {"ref": "#52514e", "reta_final": "#2a78d6", "meio_curso": "#8a5cc2", "curso_pandemia": "#eb6834"}
 ESTILOS = {"ref": "--", "reta_final": "-", "meio_curso": "-", "curso_pandemia": "-"}
-CORES_FAIXAS = ["#1f5fae", "#6d9fd8", "#b9d1ee", "#eb6834", "#52514e", "#a8a7a2", "#d6d5d0"]
+CORES_FAIXAS = ["#1f5fae", "#6d9fd8", "#b9d1ee", "#e3a72f", "#52514e", "#a8a7a2", "#d6d5d0"]
 TEXTO, TEXTO_SEC, GRADE = "#0b0b0b", "#52514e", "#e4e3df"
 
 
@@ -161,67 +161,115 @@ def meses_ate_fracao(m):
     return pd.DataFrame(linhas)
 
 
+def rotulo_grupo(nivel, grupo, quebra=" "):
+    """Ex.: 'Ingresso 2016-2017 (referência: prazo antes da pandemia)'."""
+    return f"{utils.ROTULOS_GRUPOS[nivel][grupo]}{quebra}({utils.DESCRICAO_GRUPOS[grupo]})"
+
+
+def estilo_eixo(eixo):
+    for lado in ["top", "right"]:
+        eixo.spines[lado].set_visible(False)
+    eixo.tick_params(labelsize=7, colors=TEXTO_SEC)
+
+
+def anos(meses):
+    """24 -> '2 anos', 30 -> '2 anos e meio', 84 -> '7 anos'."""
+    inteiro, resto = divmod(meses, 12)
+    texto = f"{inteiro} ano" + ("s" if inteiro > 1 else "")
+    return texto + (" e meio" if resto == 6 else "" if resto == 0 else f" e {resto} meses")
+
+
 def figura_faixas(desfechos):
-    """Barras empilhadas com a distribuição das faixas de desfecho por grupo."""
+    """Barras empilhadas: como terminou cada grupo, em faixas do regulamento.
+
+    Para a figura, 'mudou de nível' (menos de 1%) e 'sem registro final' viram uma
+    só categoria. A tabela qp1_desfechos_nacional.csv mantém as duas separadas.
+    """
+    pm, pd_ = config.PRAZO_MESES["MESTRADO"], config.PRAZO_MESES["DOUTORADO"]
+    rm, rd = config.PRORROGACAO_MESES["MESTRADO"], config.PRORROGACAO_MESES["DOUTORADO"]
+    hm, hd = config.HORIZONTE_MESES["MESTRADO"], config.HORIZONTE_MESES["DOUTORADO"]
+    categorias = [
+        ([utils.FAIXAS[0]], f"até o prazo (mestrado em até {anos(pm)}, doutorado em até {anos(pd_)})", "#1f5fae"),
+        ([utils.FAIXAS[1]], f"na prorrogação (mestrado em até {anos(pm + rm)}, doutorado em até {anos(pd_ + rd)})", "#6d9fd8"),
+        ([utils.FAIXAS[2]], f"depois da prorrogação (mestrado em até {anos(pm + hm)}, doutorado em até {anos(pd_ + hd)})", "#b9d1ee"),
+        ([utils.FAIXAS[3]], "ainda matriculado ao fim do acompanhamento", "#e3a72f"),
+        ([utils.FAIXAS[4]], "desligou ou abandonou", "#52514e"),
+        (utils.FAIXAS[5:], "outros (mudou de nível ou sumiu da base)", "#d6d5d0"),
+    ]
     linhas = [(n, g) for n in utils.ORDEM_NIVEIS for g in utils.ORDEM_GRUPOS if (n, g) in desfechos.index]
-    rotulos = []
-    for n, g in linhas:
-        r = f"{n.capitalize()}, {utils.ROTULOS_GRUPOS[n][g].lower()}"
-        if (n, g) in config.HORIZONTE_EXCECOES:
-            r += "*"
-        rotulos.append(r)
-    fig, eixo = plt.subplots(figsize=(7.2, 0.42 * len(linhas) + 1.4))
+    rotulos = [f"{n.capitalize()}, {utils.ROTULOS_GRUPOS[n][g].lower()}\n{utils.DESCRICAO_GRUPOS[g]}"
+               + ("*" if (n, g) in config.HORIZONTE_EXCECOES else "") for n, g in linhas]
+
+    fig, eixo = plt.subplots(figsize=(7.2, 0.5 * len(linhas) + 2.3))
     y = np.arange(len(linhas))[::-1].astype(float)
-    y[len([l for l in linhas if l[0] == "MESTRADO"]):] -= 0.5  # separa os níveis
+    y[len([l for l in linhas if l[0] == "MESTRADO"]):] -= 0.6  # separa os níveis
     esquerda = np.zeros(len(linhas))
-    for faixa, cor in zip(utils.FAIXAS, CORES_FAIXAS):
-        vals = np.array([desfechos.loc[l].get(faixa, 0.0) for l in linhas])
-        eixo.barh(y, vals, left=esquerda, color=cor, height=0.72, label=faixa[2:], edgecolor="white", lw=0.6)
+    barras = []
+    for faixas, nome, cor in categorias:
+        vals = np.array([sum(desfechos.loc[l].get(f, 0.0) for f in faixas) for l in linhas])
+        barras.append(eixo.barh(y, vals, left=esquerda, color=cor, height=0.72, edgecolor="white", lw=0.6, label=nome))
         for yi, xi, v in zip(y, esquerda, vals):
-            if v >= 6:
-                claro = cor in ("#b9d1ee", "#d6d5d0", "#a8a7a2")
-                eixo.text(xi + v / 2, yi, f"{v:.0f}", ha="center", va="center", fontsize=7,
-                          color=TEXTO if claro else "white")
+            if v >= 5:
+                escuro = cor in ("#1f5fae", "#6d9fd8", "#52514e")
+                eixo.text(xi + v / 2, yi, f"{v:.0f}%", ha="center", va="center", fontsize=6.5,
+                          color="white" if escuro else TEXTO)
         esquerda += vals
     eixo.set_yticks(y)
-    eixo.set_yticklabels(rotulos, fontsize=7.5, color=TEXTO)
+    eixo.set_yticklabels(rotulos, fontsize=7, color=TEXTO)
     eixo.set_xlim(0, 100)
-    eixo.set_xlabel("% das matrículas do grupo", fontsize=8, color=TEXTO_SEC)
-    eixo.tick_params(axis="x", labelsize=7, colors=TEXTO_SEC)
+    eixo.set_xlabel("% das matrículas do grupo (cada barra soma 100%)", fontsize=7.5, color=TEXTO_SEC)
+    estilo_eixo(eixo)
     eixo.tick_params(axis="y", length=0)
-    for lado in ["top", "right", "left"]:
-        eixo.spines[lado].set_visible(False)
-    eixo.legend(fontsize=6.5, frameon=False, ncol=4, loc="lower center", bbox_to_anchor=(0.45, 1.0))
+    eixo.spines["left"].set_visible(False)
+
+    # duas legendas: quem titulou (contado desde a matrícula) e quem não titulou
+    leg1 = fig.legend(handles=barras[:3], title="Titulou (tempo contado desde a matrícula)", loc="upper left",
+                      bbox_to_anchor=(0.01, 0.995), fontsize=6.3, title_fontsize=7, frameon=False, alignment="left")
+    fig.legend(handles=barras[3:], title="Não titulou dentro do acompanhamento", loc="upper left",
+               bbox_to_anchor=(0.6, 0.995), fontsize=6.3, title_fontsize=7, frameon=False, alignment="left")
+    fig.add_artist(leg1)
+    nota = (f"Acompanhamento: até {anos(pm + hm)} após a matrícula no mestrado e até {anos(pd_ + hd)} no doutorado, "
+            "o máximo que a base (até 2024) permite.")
     if config.HORIZONTE_EXCECOES:
-        fig.text(0.01, 0.01, "* Acompanhado só até 12 meses após o prazo: quem não titulou até lá aparece como ainda matriculado.",
-                 fontsize=6, color=TEXTO_SEC)
-    fig.tight_layout(rect=(0, 0.03, 1, 1))
+        nota += (f"\n* Acompanhado só até {anos(pd_ + rd)} após a matrícula: quem não titulou até lá aparece como "
+                 "ainda matriculado.")
+    fig.text(0.01, 0.01, nota, fontsize=6, color=TEXTO_SEC, va="bottom")
+    fig.tight_layout(rect=(0, 0.06, 1, 0.86))
     fig.savefig(utils.FIGURAS / "qp1_faixas.png", dpi=300)
     plt.close(fig)
 
 
 def figura_curva(m):
-    fig, eixos = plt.subplots(1, 2, figsize=(7.2, 3), sharey=True)
+    """Curva acumulada: % do grupo já titulado, mês a mês, em relação ao prazo."""
+    fig, eixos = plt.subplots(1, 2, figsize=(7.2, 4.4), sharey=True)
     for eixo, nivel in zip(eixos, ["MESTRADO", "DOUTORADO"]):
         x = m[m["NIVEL"] == nivel]
+        prorrogacao = config.PRORROGACAO_MESES[nivel]
         for grupo in config.GRUPOS[nivel]:
             g = x[x["GRUPO"] == grupo]
             meses = np.arange(-12, utils.horizonte_meses(nivel, grupo) + 1)
             tit = g.loc[g["DESFECHO"].isin(utils.FAIXAS_TITULADO), "EXTENSAO_MESES"].to_numpy()
             acumulada = [100 * (tit <= k).sum() / len(g) for k in meses]
             eixo.plot(meses, acumulada, color=CORES[grupo], ls=ESTILOS[grupo], lw=2,
-                      label=utils.ROTULOS_GRUPOS[nivel][grupo])
+                      label=rotulo_grupo(nivel, grupo, "\n"))
+            if (nivel, grupo) in config.HORIZONTE_EXCECOES:
+                eixo.annotate("acompanhado só\naté aqui", (meses[-1], acumulada[-1]), xytext=(meses[-1] + 4, acumulada[-1] - 18),
+                              fontsize=6, color=CORES[grupo], arrowprops=dict(arrowstyle="-", color=CORES[grupo], lw=0.8))
+        # linhas de referência, com rótulo escrito
         eixo.axvline(0, color=TEXTO_SEC, lw=1)
-        eixo.axvline(config.PRORROGACAO_MESES[nivel], color=TEXTO_SEC, lw=1, ls=":")
+        eixo.axvline(prorrogacao, color=TEXTO_SEC, lw=1, ls=":")
         eixo.axhline(50, color=TEXTO_SEC, lw=0.6, ls=(0, (1, 3)))
-        eixo.set_title(nivel.capitalize(), fontsize=10, color=TEXTO)
-        eixo.set_xlabel("Meses em relação ao prazo de referência", fontsize=8, color=TEXTO_SEC)
+        eixo.text(-0.6, 97, "prazo", fontsize=6.5, color=TEXTO_SEC, ha="right", va="top")
+        eixo.text(prorrogacao + 0.6, 97, "fim da\nprorrogação", fontsize=6.5, color=TEXTO_SEC, ha="left", va="top")
+        eixo.text(-12, 51.5, "metade do grupo", fontsize=6, color=TEXTO_SEC, ha="left", va="bottom")
+
+        eixo.set_title(f"{nivel.capitalize()} (prazo de {config.PRAZO_MESES[nivel]} meses)", fontsize=9, color=TEXTO)
+        eixo.set_xlabel("Meses em relação ao prazo (negativo = antes do prazo)", fontsize=7, color=TEXTO_SEC)
         eixo.grid(axis="y", color=GRADE, lw=0.8)
-        eixo.legend(fontsize=7, frameon=False, loc="upper left")
-        for lado in ["top", "right"]:
-            eixo.spines[lado].set_visible(False)
-        eixo.tick_params(labelsize=8, colors=TEXTO_SEC)
-    eixos[0].set_ylabel("% de matrículas tituladas", fontsize=8, color=TEXTO_SEC)
+        # legenda abaixo do gráfico, para não cobrir as curvas
+        eixo.legend(fontsize=6.3, frameon=False, loc="upper left", bbox_to_anchor=(0.0, -0.2), labelspacing=0.7)
+        estilo_eixo(eixo)
+    eixos[0].set_ylabel("% do grupo já titulado", fontsize=7.5, color=TEXTO_SEC)
     eixos[0].set_ylim(0, 100)
     fig.tight_layout()
     fig.savefig(utils.FIGURAS / "qp1_curva_acumulada.png", dpi=300)
@@ -229,32 +277,38 @@ def figura_curva(m):
 
 
 def figura_forest(inst, nacional):
-    ordem = (inst[inst["grupo"] == "curso_pandemia"].sort_values("diferenca_pp")["instituicao"].tolist())
-    y = {nome: i for i, nome in enumerate(ordem)}
-    fig, eixo = plt.subplots(figsize=(4.2, 0.22 * len(ordem) + 1))
-    deslocamento = {"reta_final": 0.15, "curso_pandemia": -0.15}
-    for grupo in utils.grupos_expostos("MESTRADO"):
-        g = inst[inst["grupo"] == grupo]
-        ys = g["instituicao"].map(y) + deslocamento[grupo]
-        eixo.errorbar(g["diferenca_pp"], ys, xerr=[g["diferenca_pp"] - g["ic_inf"], g["ic_sup"] - g["diferenca_pp"]],
-                      fmt="o", ms=4, color=CORES[grupo], elinewidth=1, capsize=0,
-                      label=utils.ROTULOS_GRUPOS["MESTRADO"][grupo] + " vs 2016-2017")
-        media = nacional.loc[nacional["comparacao"] == f"{grupo} vs ref", "diferenca_pp"].iat[0]
-        eixo.axvline(media, color=CORES[grupo], lw=1, ls="--")
+    """Mestrado: quanto o indicador mudou em cada instituição, do ingresso 2016-2017
+    para o ingresso 2020-2021 (curso todo na pandemia). Uma linha por instituição.
+    A comparação com a reta final fica na tabela qp1_instituicoes.csv.
+    """
+    grupo = "curso_pandemia"
+    corte = config.PRAZO_MESES["MESTRADO"] + config.PRORROGACAO_MESES["MESTRADO"]
+    g = inst[inst["grupo"] == grupo].sort_values("diferenca_pp").reset_index(drop=True)
+    ys = np.arange(len(g))[::-1]
+    unb = g["instituicao"] == "UNB"
+    fig, eixo = plt.subplots(figsize=(4.4, 0.155 * len(g) + 1.7))
+    eixo.hlines(ys, g["ic_inf"], g["ic_sup"], color="#c9c8c3", lw=1.2, zorder=1)
+    eixo.scatter(g["diferenca_pp"], ys, s=16, color=np.where(unb, CORES[grupo], "#52514e"), zorder=2)
+    media = nacional.loc[nacional["comparacao"] == f"{grupo} vs ref", "diferenca_pp"].iat[0]
     eixo.axvline(0, color=TEXTO_SEC, lw=1)
-    eixo.set_ylim(-0.7, len(ordem) - 0.3)
-    eixo.set_yticks(range(len(ordem)))
-    eixo.set_yticklabels(ordem, fontsize=6, color=TEXTO)
+    eixo.axvline(media, color=CORES[grupo], lw=1, ls="--")
+    eixo.text(media - 1, len(g) - 0.2, f"Brasil: {media:.0f} pontos".replace("-", "−"), fontsize=6,
+              color=CORES[grupo], ha="right", va="bottom")
+    eixo.text(1, len(g) - 0.2, "sem mudança", fontsize=6, color=TEXTO_SEC, ha="left", va="bottom")
+    eixo.set_ylim(-1, len(g) + 1)
+    eixo.set_yticks(ys)
+    eixo.set_yticklabels(g["instituicao"], fontsize=5.6, color=TEXTO)
     for rotulo in eixo.get_yticklabels():
         if rotulo.get_text() == "UNB":
             rotulo.set_fontweight("bold")
-            eixo.axhspan(y["UNB"] - 0.45, y["UNB"] + 0.45, color=GRADE, zorder=0)
-    eixo.set_xlabel(f"Diferença em pontos percentuais\n(titulação até +{config.PRORROGACAO_MESES['MESTRADO']} meses, IC 95%)",
-                    fontsize=7, color=TEXTO_SEC)
-    eixo.tick_params(axis="x", labelsize=7, colors=TEXTO_SEC)
-    eixo.legend(fontsize=6, frameon=False, loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=1)
-    for lado in ["top", "right"]:
-        eixo.spines[lado].set_visible(False)
+            rotulo.set_color(CORES[grupo])
+    eixo.set_xlabel(f"Mudança no % titulado em até {anos(corte)}, em pontos percentuais\n"
+                    "← caiu        |        subiu →\n(ponto = mudança, traço cinza = intervalo de confiança de 95%)",
+                    fontsize=6.3, color=TEXTO_SEC)
+    eixo.set_title("Mestrado: ingresso 2020-2021 (curso todo na pandemia)\ncomparado ao ingresso 2016-2017 (referência)",
+                   fontsize=7.5, color=TEXTO)
+    estilo_eixo(eixo)
+    eixo.tick_params(axis="y", length=0, labelsize=5.6)
     fig.tight_layout()
     fig.savefig(utils.FIGURAS / "qp1_forest_instituicoes.png", dpi=300)
     plt.close(fig)
