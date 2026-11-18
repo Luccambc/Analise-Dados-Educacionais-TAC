@@ -31,7 +31,7 @@ Ou tudo de uma vez: `python src/rodar_tudo.py`
 | 01_carregar | `data/processed/base.parquet` |
 | 02_verificar | `results/verificacao.txt` |
 | 03_preparar | `data/processed/matriculas.parquet`, `results/tabelas/etapas_preparacao.csv`, `results/tabelas/tabela1_matriculas.csv` |
-| 04_qp1 | tabelas `qp1_*.csv` (inclui `qp1_meses_ate_metade.csv`), figuras `qp1_faixas.png`, `qp1_curva_acumulada.png` e `qp1_forest_instituicoes.png` |
+| 04_qp1 | tabelas `qp1_*.csv` (inclui `qp1_meses_ate_metade.csv`), figuras `qp1_faixas.png`, `qp1_regioes.png`, `qp1_curva_acumulada.png` e `qp1_forest_instituicoes.png` |
 | 05_qp2 | tabelas `qp2_*.csv` |
 | 06_qp3 | tabelas `qp3_*.csv` |
 

@@ -12,6 +12,7 @@ Saídas em results/tabelas/:
     qp1_regioes.csv              indicador por região e grupo
 Saídas em results/figuras/:
     qp1_faixas.png
+    qp1_regioes.png
     qp1_curva_acumulada.png
     qp1_forest_instituicoes.png
 """
@@ -239,6 +240,63 @@ def figura_faixas(desfechos):
     plt.close(fig)
 
 
+def figura_regioes(regioes, indicador):
+    """Barras agrupadas: % titulado até o fim da prorrogação por região e grupo.
+
+    Abaixo de cada região, a variação do primeiro para o último grupo. Barras
+    listradas e claras indicam grupos com menos de 40 matrículas (só descritivo).
+    """
+    nomes = {"SUL": "Sul", "CENTRO-OESTE": "Centro-\nOeste", "NORTE": "Norte", "NORDESTE": "Nordeste", "SUDESTE": "Sudeste"}
+    ordem = ["SUL", "CENTRO-OESTE", "NORTE", "NORDESTE", "SUDESTE"]
+    cores = dict(CORES, ref="#8A8984")
+    fig, eixos = plt.subplots(1, 2, figsize=(7.2, 3.3))
+    for eixo, nivel in zip(eixos, utils.ORDEM_NIVEIS):
+        grupos = list(config.GRUPOS[nivel])
+        blocos = []
+        for reg in ordem:
+            d = regioes[(regioes["NIVEL"] == nivel) & (regioes["NM_REGIAO"] == reg)].set_index("GRUPO")
+            blocos.append((nomes[reg], d))
+        blocos.append(("Brasil", indicador[indicador["nivel"] == nivel].set_index("grupo")))
+        xs = np.arange(len(blocos)) * 1.2
+        xs[-1] += 0.4
+        largura = 0.27
+        for k, grupo in enumerate(grupos):
+            for x, (_, d) in zip(xs, blocos):
+                if grupo not in d.index:
+                    continue
+                v, n = d.loc[grupo, "percentual"], d.loc[grupo, "matriculas"]
+                pequeno = n < 40
+                eixo.bar(x + (k - 1) * largura, v, largura * 0.92, color=cores[grupo], alpha=0.35 if pequeno else 1,
+                         hatch="///" if pequeno else None, edgecolor=cores[grupo] if pequeno else "none",
+                         label=utils.ROTULOS_GRUPOS[nivel][grupo].replace("Ingresso ", "") + f" · {utils.DESCRICAO_GRUPOS[grupo].split(':')[0]}"
+                         if x == xs[0] else None)
+                eixo.text(x + (k - 1) * largura, v + 1, f"{v:.0f}", ha="center", va="bottom", fontsize=5.5, color=TEXTO)
+        rotulos = []
+        for nome, d in blocos:
+            variacao = d.loc[grupos[-1], "percentual"] - d.loc["ref", "percentual"]
+            rotulos.append(nome + "\n" + f"{variacao:+.0f} pts".replace("-", "−"))
+        eixo.set_xticks(xs)
+        textos = eixo.set_xticklabels(rotulos, fontsize=6.3, color=TEXTO)
+        textos[-1].set_fontweight("bold")
+        eixo.axvline((xs[-2] + xs[-1]) / 2, color=GRADE, lw=0.8)
+        eixo.set_ylim(0, 85)
+        eixo.grid(axis="y", color=GRADE, lw=0.6)
+        eixo.set_axisbelow(True)
+        for lado in ["top", "right", "left"]:
+            eixo.spines[lado].set_visible(False)
+        eixo.tick_params(axis="y", colors=TEXTO_SEC, labelsize=6.5, length=0)
+        eixo.tick_params(axis="x", length=0)
+        corte = config.PRAZO_MESES[nivel] + config.PRORROGACAO_MESES[nivel]
+        anos = f"{corte // 12} anos" + (" e meio" if corte % 12 == 6 else "")
+        eixo.set_title(f"{nivel.capitalize()} · % titulado em até {anos}", fontsize=8, color=TEXTO, loc="left")
+        eixo.legend(loc="upper center", bbox_to_anchor=(0.5, -0.24), ncol=1, frameon=False, fontsize=6, handlelength=1)
+    fig.text(0.01, 0.01, "Abaixo de cada região: variação do primeiro para o último grupo. Barras listradas: menos de 40 matrículas.",
+             fontsize=5.8, color=TEXTO_SEC)
+    fig.tight_layout(rect=(0, 0.04, 1, 1), w_pad=2)
+    fig.savefig(utils.FIGURAS / "qp1_regioes.png", dpi=300)
+    plt.close(fig)
+
+
 def figura_curva(m):
     """Curva acumulada: % do grupo já titulado, mês a mês, em relação ao prazo."""
     fig, eixos = plt.subplots(1, 2, figsize=(7.2, 4.4), sharey=True)
@@ -345,6 +403,7 @@ def main():
     metade.to_csv(utils.TABELAS / "qp1_meses_ate_metade.csv", index=False)
 
     figura_faixas(desfechos)
+    figura_regioes(regioes, indicador)
     figura_curva(m)
     principal_mestrado = (rob["nivel"] == "MESTRADO") & rob["principal"]
     figura_forest(inst, rob[principal_mestrado])
